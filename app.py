@@ -27,12 +27,17 @@ def get_users():
       resp.status_code = 201
       return resp
 
-@app.route('/users/<id>')
+@app.route('/users/<id>', methods=['GET', 'DELETE'])
 def get_user(id):
-    if id:
+    if request.method == 'GET':
+        if id:
+            for user in users['users_list']:
+                if user['id'] == id:
+                    return user
+            return ({})
+        return users
+    elif request.method == 'DELETE':
         for user in users['users_list']:
             if user['id'] == id:
-                return user
-        return ({})
-    return users
-
+                users['users_list'].remove(user)
+        return users
