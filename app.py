@@ -9,7 +9,7 @@ users = json.load(open('users.json', 'r'))
 def hello_wold():
     return 'hello world!'
 
-@app.route('/users')
+@app.route('/users/')
 def get_users():
     search_username = request.args.get('name') # accessing the value of parameter 'name'
     if search_username:
@@ -19,3 +19,13 @@ def get_users():
                 subdict['users_list'].append(user)
         return subdict
     return users
+
+@app.route('/users/<id>')
+def get_user(id):
+    if id:
+        for user in users['users_list']:
+            if user['id'] == id:
+                return user
+        return ({})
+    return users
+
