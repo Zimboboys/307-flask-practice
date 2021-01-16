@@ -29,13 +29,12 @@ def get_users():
                         and (not search_job or user['job'] == search_job)):
                     subdict['users_list'].append(user)
             return subdict
-        print(users)
         return users
     elif request.method == 'POST':
       userToAdd = request.get_json()
       userToAdd['id'] = str(random_number())
       users['users_list'].append(userToAdd)
-      resp = jsonify(success=True)
+      resp = jsonify(newCharacter=userToAdd, success=True)
       resp.status_code = 201
       return resp
 
