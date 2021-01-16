@@ -1,9 +1,16 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
+from random import randint
 
 app = Flask(__name__)
+CORS(app)
 
 users = json.load(open('users.json', 'r'))
+
+def random_number():
+    # simple enough random 5-digit id
+    return randint(10000, 99999)
 
 @app.route('/')
 def hello_wold():
@@ -22,9 +29,11 @@ def get_users():
                         and (not search_job or user['job'] == search_job)):
                     subdict['users_list'].append(user)
             return subdict
+        print(users)
         return users
     elif request.method == 'POST':
       userToAdd = request.get_json()
+      userToAdd['id'] = str(random_number())
       users['users_list'].append(userToAdd)
       resp = jsonify(success=True)
       resp.status_code = 201
