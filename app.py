@@ -42,15 +42,11 @@ def get_users():
 def get_user(id):
     if request.method == 'GET':
         if id:
-            for user in users['users_list']:
-                if user['id'] == id:
-                    return user
-            return ({})
+            user = list(filter(lambda u: u['id'] == id, users['users_list']))
+            return jsonify(user=user)
         return users
     elif request.method == 'DELETE':
-        for user in users['users_list']:
-            if user['id'] == id:
-                users['users_list'].remove(user)
+        users['users_list'] = list(filter(lambda u: u['id'] != id, users['users_list']))
         resp = jsonify(success=True)
         resp.status_code = 204
         return resp
