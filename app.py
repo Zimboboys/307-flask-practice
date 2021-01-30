@@ -1,16 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
-from random import randint
+
+from model import User
 
 app = Flask(__name__)
 CORS(app)
-
-users = json.load(open('users.json', 'r'))
-
-def random_number():
-    # simple enough random 5-digit id
-    return randint(10000, 99999)
 
 @app.route('/')
 def hello_wold():
@@ -23,30 +17,41 @@ def get_users():
         search_job = request.args.get('job')
 
         if search_username or search_job:
-            subdict = {'users_list' : []}
-            for user in users['users_list']:
-                if ((not search_username or user['name'] == search_username)
-                        and (not search_job or user['job'] == search_job)):
-                    subdict['users_list'].append(user)
-            return subdict
-        return users
+            search_condition = {}
+            if search_username:
+                search_condition["name"] = search_username
+            if search_job:
+                search_condition["job"] = search_job
+
+            users = User().find_some(search_condition)
+            return {"users_list": users}, 200
+
+        users = User().find_all()
+        return {"users_list": users}, 200
+
     elif request.method == 'POST':
-      userToAdd = request.get_json()
-      userToAdd['id'] = str(random_number())
-      users['users_list'].append(userToAdd)
-      resp = jsonify(newCharacter=userToAdd, success=True)
-      resp.status_code = 201
-      return resp
+        user = User(request.get_json())
+        user.save()
+
+        resp = jsonify(newCharacter=user, success=True)
+        resp.status_code = 201
+        return resp
 
 @app.route('/users/<id>', methods=['GET', 'DELETE'])
 def get_user(id):
     if request.method == 'GET':
         if id:
-            user = list(filter(lambda u: u['id'] == id, users['users_list']))
-            return jsonify(user=user)
-        return users
+            user = User().find_id(id)
+            if len(user) == 0:
+                return jsonify(users_list=user, error="no users found"), 404
+            return jsonify(users_list=user), 200
+        return User().find_all(), 200
+
     elif request.method == 'DELETE':
-        users['users_list'] = list(filter(lambda u: u['id'] != id, users['users_list']))
-        resp = jsonify(success=True)
-        resp.status_code = 204
-        return resp
+        user = User({"_id":id})
+        removed = user.remove()
+
+        # pretty sure this'll get set if a delete error happens
+        if removed.get('writeError'):
+            return {}, 404
+        return {}, 204
